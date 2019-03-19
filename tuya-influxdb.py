@@ -3,9 +3,18 @@ from time import sleep
 import datetime
 
 # SMART PLUG INFO
-# Add to the list below in the following format.
-# [[<deviceID>,<deviceIP>,<deviceLocalKey>],[<deviceID>,<deviceIP>,<deviceLocalKey>], ... ]
-devices = [["01200758dc4f22005c14","192.168.1.244","7bac3589afd382e2"]]
+# Add to the list in the following format. Don't forget the commas.
+'''
+devices = [
+	[<deviceID>,<deviceIP>,<deviceLocalKey>],
+	[<deviceID>,<deviceIP>,<deviceLocalKey>],
+	[<deviceID>,<deviceIP>,<deviceLocalKey>]
+]
+'''
+
+devices = [
+	["01200758dc4f22005c14","192.168.1.244","7bac3589afd382e2"]
+]
 
 def deviceInfo( deviceid, ip, localkey ):
 
@@ -67,3 +76,4 @@ def main():
 		
 if __name__ == "__main__":
 	main()
+
