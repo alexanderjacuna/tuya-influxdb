@@ -1,9 +1,9 @@
 import pytuya
 from time import sleep
+import os
 import datetime
 
 # SMART PLUG INFO
-# Add to the list in the following format. Don't forget the commas.
 '''
 devices = [
 	[<deviceID>,<deviceIP>,<deviceLocalKey>],
@@ -13,66 +13,69 @@ devices = [
 '''
 
 devices = [
-	["01200758dc4f22005c14","192.168.1.244","7bac3589afd382e2"]
+	["01200758dc4f22005c14","192.168.1.120","7bac3589afd382e2"]
 ]
+
+def pingCheck(ip):
+
+    ipAddress = ip
+    response = os.system("ping -c 3 " + ipAddress + " >/dev/null 2>&1")
+
+    if response == 0:
+        status = True
+    else:
+        status = False
+
+    return status
 
 def deviceInfo( deviceid, ip, localkey ):
 
 	counter = 0
-	retry = 5
-	
+	retryCount = 4
+
 	while True:
 		try:
-		
 			d = pytuya.OutletDevice(deviceid, ip, localkey)
 			data = d.status()
-			
+
 			if(d):
-				# state = data['dps']['1']
+
 				devId = data['devId']
 				power = (float(data['dps']['5'])/10.0)
 				current = float(data['dps']['4']*0.001)
 				voltage = (float(data['dps']['6'])/10.0)
-				resistance = float(voltage / current)
-				
-				# print state
-				# print devId
-				# print 'Power (W): %f' % (float(data['dps']['5'])/10.0)
-				# print 'Current (mA): %f' % float(data['dps']['4'])
-				# print 'Voltage (V): %f' % (float(data['dps']['6'])/10.0)
-				# print 'Ohms (R): %f' % resistance
-				
-				return devId, power, current, voltage,resistance
+								
+				return devId, power, current, voltage
 				
 		except:
 			counter+=1
-			if(counter>retry):
-				print("ERROR: No response from plug %s [%s]." % (deviceid,ip))
+			if(counter>retryCount):
+				print "ERROR: No response from plug %s [%s]." % (deviceid,ip)
 				return(0.0)
 			sleep(2)
 
+
+
+
 def main():
+
 	for device in devices:
-	
+				
 		deviceID = device[0]
 		deviceIP = device[1]
 		deviceLocalKey = device[2]
-		
-		# DEBUG
-		# print device[0]
-		# print device[1]
-		# print device[2]
-		# print deviceID
-		# print deviceIP
-		# print deviceLocalKey
-		
-		devId, power, current, voltage, resistance = deviceInfo(deviceID,deviceIP,deviceLocalKey)
+	
+		if pingCheck(deviceIP) is True:
+			
+			devId, power, current, voltage = deviceInfo(deviceID,deviceIP,deviceLocalKey)
 
-		print devId
-		print power
-		print current
-		print voltage
-		print resistance
+			print devId
+			print 'Power (W): %f' % power
+			print 'Current (mA): %f' % current
+			print 'Voltage (V): %f' % voltage
+			
+		else:
+			print "Unable to connect to device: " + deviceID + " @ " + deviceIP
 		
 if __name__ == "__main__":
 	main()
