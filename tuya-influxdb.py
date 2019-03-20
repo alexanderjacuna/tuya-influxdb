@@ -2,6 +2,7 @@ import pytuya
 from time import sleep
 import os
 import datetime
+from influxdb import InfluxDBClient
 
 # SMART PLUG INFO
 '''
@@ -11,10 +12,19 @@ devices = [
 	[<deviceID>,<deviceIP>,<deviceLocalKey>]
 ]
 '''
-
 devices = [
 	["01200758dc4f22005c14","192.168.1.120","7bac3589afd382e2"]
 ]
+
+# INFLUXDB CONNECTION INFO
+host = "192.168.1.67"
+port = 8086
+user = "writer"
+password = "supersecretpassword" 
+dbname = "database"
+
+# CREATE CLIENT OBJECT
+client = InfluxDBClient(host, port, user, password, dbname)
 
 def pingCheck(ip):
 
@@ -54,8 +64,40 @@ def deviceInfo( deviceid, ip, localkey ):
 				return(0.0)
 			sleep(2)
 
-
-
+def writeData(id,watts,amps,volts):
+	
+	measurement = id
+	
+	data1 = [
+	{
+	  "measurement": measurement + "-" + "watts",
+		  "fields": {
+			  "watts" : watts
+		  }
+	  } 
+	]
+	
+	data2 = [
+	{
+	  "measurement": measurement + "-" + "amps",
+		  "fields": {
+			  "amps" : amps
+		  }
+	  } 
+	]
+	
+	data3 = [
+	{
+	  "measurement": measurement + "-" + "volts",
+		  "fields": {
+			  "volts" : volts
+		  }
+	  } 
+	]
+	
+	client.write_points(data1)
+	client.write_points(data2)
+	client.write_points(data3)
 
 def main():
 
@@ -73,6 +115,8 @@ def main():
 			print 'Power (W): %f' % power
 			print 'Current (mA): %f' % current
 			print 'Voltage (V): %f' % voltage
+			
+			writeData(devId,power,current,voltage)
 			
 		else:
 			print "Unable to connect to device: " + deviceID + " @ " + deviceIP
